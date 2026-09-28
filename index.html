@@ -29,12 +29,18 @@ h2{color:var(--brand);margin:0 0 20px;font-size:1.6rem}
 .card h3{margin:0 0 6px;font-size:1.1rem}
 .card p{margin:0;color:var(--muted);font-size:.95rem}
 .contact p{margin:6px 0}
+.cform{max-width:560px;margin-top:20px;display:grid;gap:14px}
+.cform label{display:grid;gap:4px;font-size:.95rem;font-weight:500}
+.cform input,.cform select,.cform textarea{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);width:100%}
+.cform input:focus,.cform select:focus,.cform textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.cform .btn{border:0;cursor:pointer;font:inherit;font-weight:600;margin:0}
+.st{margin:0;font-size:.95rem;color:var(--muted);min-height:1.4em}
 footer{padding:24px 0;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
 <header><div class="wrap"><nav>
-<span class="logo">রনি নাথ,ট্যাক্স পরামর্শদাতা</span>
+<span class="logo">আপনার নাম, অ্যাডভোকেট</span>
 <div><a href="#services">সেবা</a><a href="#about">পরিচিতি</a><a href="#contact">যোগাযোগ</a></div>
 </nav></div></header>
 
@@ -65,12 +71,51 @@ footer{padding:24px 0;color:var(--muted);font-size:.85rem;border-top:1px solid v
 
 <section id="contact" class="contact">
 <h2>যোগাযোগ</h2>
-<p><strong>ফোন:</strong> [01817778820]</p>
+<p><strong>ফোন:</strong> [আপনার নম্বর]</p>
 <p><strong>ইমেইল:</strong> [আপনার ইমেইল]</p>
 <p><strong>চেম্বার:</strong> [আপনার ঠিকানা]</p>
+<form id="cf" class="card cform" novalidate>
+<h3>সরাসরি বার্তা পাঠান</h3>
+<label>আপনার নাম *<input name="name" required autocomplete="name"></label>
+<label>মোবাইল নম্বর *<input name="phone" type="tel" required autocomplete="tel" inputmode="tel"></label>
+<label>ইমেইল (ঐচ্ছিক)<input name="email" type="email" autocomplete="email"></label>
+<label>বিষয়<select name="topic">
+<option>আয়কর রিটার্ন</option><option>কর আপিল ও ট্রাইব্যুনাল</option><option>ভ্যাট পরামর্শ</option><option>নোটিশ ও অডিট</option><option>কর পরিকল্পনা</option><option>টিআইএন ও নিবন্ধন</option><option>অন্যান্য</option></select></label>
+<label>বার্তা *<textarea name="msg" rows="4" required></textarea></label>
+<input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+<button class="btn" type="submit">পাঠান</button>
+<p id="st" class="st" role="status"></p>
+</form>
 </section>
 </main>
 
 <footer><div class="wrap">© আপনার নাম, অ্যাডভোকেট। এই ওয়েবসাইটের তথ্য সাধারণ ধারণার জন্য; এটি কোনো নির্দিষ্ট আইনি পরামর্শ নয়।</div></footer>
+<script>
+// ===== এই দুটি জায়গায় আপনার তথ্য বসান =====
+var WHATSAPP_NUMBER = "8801817778820"; // দেশের কোডসহ, + বা 0 ছাড়া। যেমন 8801712345678
+var EMAIL_ADDRESS = "champakshildbbl@gmail.com";   // যে ইমেইলে বার্তা পেতে চান
+// ============================================
+document.getElementById("cf").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var f = e.target, st = document.getElementById("st");
+  if (f._honey.value) return;
+  if (!f.name.value.trim() || !f.phone.value.trim() || !f.msg.value.trim()) {
+    st.textContent = "অনুগ্রহ করে নাম, মোবাইল নম্বর ও বার্তা লিখুন।";
+    return;
+  }
+  var d = { নাম: f.name.value.trim(), মোবাইল: f.phone.value.trim(), ইমেইল: f.email.value.trim() || "দেওয়া হয়নি", বিষয়: f.topic.value, বার্তা: f.msg.value.trim() };
+  var text = "নতুন যোগাযোগ (ওয়েবসাইট থেকে)\nনাম: " + d.নাম + "\nমোবাইল: " + d.মোবাইল + "\nইমেইল: " + d.ইমেইল + "\nবিষয়: " + d.বিষয় + "\nবার্তা: " + d.বার্তা;
+  st.textContent = "পাঠানো হচ্ছে...";
+  var mailBody = Object.assign({ _subject: "ওয়েবসাইট থেকে নতুন বার্তা: " + d.নাম, _template: "table", _captcha: "false" }, d);
+  var mail = fetch("https://formsubmit.co/ajax/" + encodeURIComponent(EMAIL_ADDRESS), {
+    method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(mailBody)
+  }).catch(function () {});
+  mail.then(function () {
+    st.textContent = "ধন্যবাদ! আপনার বার্তা পাঠানো হয়েছে। হোয়াটসঅ্যাপ খুলছে...";
+    window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text), "_blank");
+    f.reset();
+  });
+});
+</script>
 </body>
 </html>
